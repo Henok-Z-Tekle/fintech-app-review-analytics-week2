@@ -44,7 +44,12 @@ except Exception:
     # Provide a lightweight fallback if tqdm is not available in the environment
     def tqdm(iterable, **kwargs):
         return iterable
-from config import APP_IDS, BANK_NAMES, SCRAPING_CONFIG, DATA_PATHS
+try:
+    # Prefer top-level import when running module as a script
+    from config import APP_IDS, BANK_NAMES, SCRAPING_CONFIG, DATA_PATHS
+except Exception:
+    # When imported as package (import src.scraper) use relative import
+    from .config import APP_IDS, BANK_NAMES, SCRAPING_CONFIG, DATA_PATHS
 
 
 class PlayStoreScraper:
