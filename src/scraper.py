@@ -22,7 +22,12 @@ from google_play_scraper import app, Sort, reviews
 import pandas as pd
 from datetime import datetime
 import time
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+except Exception:
+    # Provide a lightweight fallback if tqdm is not available in the environment
+    def tqdm(iterable, **kwargs):
+        return iterable
 from config import APP_IDS, BANK_NAMES, SCRAPING_CONFIG, DATA_PATHS
 
 
