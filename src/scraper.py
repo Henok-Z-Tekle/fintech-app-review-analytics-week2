@@ -18,7 +18,23 @@ from typing import Any, Dict, List, Optional
 # Allow importing config when running as a script
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from google_play_scraper import app, Sort, reviews
+try:
+    from google_play_scraper import app, Sort, reviews
+    _HAS_GPS = True
+except Exception:
+    # If google_play_scraper is not installed, provide clear error when used
+    _HAS_GPS = False
+
+    def _gps_missing(*_, **__):
+        raise RuntimeError("google_play_scraper is required for scraping. Install it with `pip install google-play-scraper`")
+
+    app = _gps_missing
+
+    class Sort:
+        NEWEST = None
+
+    def reviews(*_, **__):
+        return _gps_missing()
 import pandas as pd
 from datetime import datetime
 import time
