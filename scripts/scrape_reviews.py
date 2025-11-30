@@ -13,7 +13,7 @@ import pandas as pd
 from google_play_scraper import Sort, reviews
 
 
-def scrape_app(app_id: str, count: int = 400, lang: str = "en", country: str = "us") -> pd.DataFrame:
+def scrape_app(app_id: str, count: int = 400, lang: str = "en", country: str = "et") -> pd.DataFrame:
     """Scrape up to `count` reviews for an app and return a DataFrame.
     Columns: review, rating, date, userName, replyDate, replyContent
     """
