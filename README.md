@@ -1,4 +1,4 @@
-Fintech App Review Analytics — Week 2 (Task 2: Sentiment & Thematic Analysis)
+# Fintech App Review Analytics — Week 2 (Task 2: Sentiment & Thematic Analysis)
 
 This module extends the cleaned dataset from Task 1 by applying sentiment analysis, keyword extraction, and thematic clustering on user reviews collected from the Google Play Store for three major Ethiopian mobile banking apps. The objective for Week 2 (Task 2) is to generate an enriched, analysis-ready dataset that includes sentiment labels, confidence scores, cleaned text, keywords, and themes.
 
