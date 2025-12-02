@@ -1,12 +1,9 @@
+# 10 Academy · AI Mastery · Week 2 Project
 # Fintech App Review Analytics — Full Project (Tasks 1–4)
-
-10 Academy · AI Mastery · Week 2 Project
-Author: Henok Zenebe Tekle
-Email: henok.z.tekle@gmail.com
 
 This repository contains the complete workflow for analyzing customer feedback of Ethiopian mobile banking apps—CBE, Bank of Abyssinia, and Dashen Bank—using scraping, NLP, PostgreSQL, and data visualization.
 
-📌 Project Goals
+## 📌 Project Goals
 
 Scrape real reviews from the Google Play Store
 
@@ -164,6 +161,5 @@ python src/task4_insights_visualization.py
 ✔ Insights ready for final report
 
 📞 Contact
-
 Name: Henok Zenebe Tekle
 Email: henok.z.tekle@gmail.com
