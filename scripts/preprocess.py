@@ -10,6 +10,13 @@ Actions:
 from pathlib import Path
 import argparse
 import pandas as pd
+import os
+
+# Import config for canonical data paths and bank mappings. Support running as script or package.
+try:
+    from config import APP_IDS, BANK_NAMES, DATA_PATHS
+except Exception:
+    from ..src.config import APP_IDS, BANK_NAMES, DATA_PATHS
 
 
 def preprocess(raw_dir: Path, out_file: Path):
@@ -32,12 +39,29 @@ def preprocess(raw_dir: Path, out_file: Path):
         df = df.rename(columns=col_map)
 
         # Add bank/source information from filename if possible
-        bank = f.stem
-        df["bank"] = bank
+        bank_code = f.stem
+        # Try to map filename/app id to known bank code (APP_IDS values may be app ids)
+        # If filename contains an app id, try to invert APP_IDS
+        inv = {v: k for k, v in APP_IDS.items()}
+        if bank_code in inv:
+            bank_code = inv[bank_code]
+
+        df["bank_code"] = bank_code
+        df["bank_name"] = BANK_NAMES.get(bank_code, bank_code)
         df["source"] = "google_play"
 
-        # Keep only relevant columns (if present)
-        keep = [c for c in ["review", "rating", "date", "bank", "source"] if c in df.columns]
+        # Keep and standardize relevant columns
+        # Map common names to canonical names
+        col_map2 = {}
+        if "review" in df.columns and "review_text" not in df.columns:
+            col_map2["review"] = "review_text"
+        if "date" in df.columns and "review_date" not in df.columns:
+            col_map2["date"] = "review_date"
+        if "rating" in df.columns and "rating" not in df.columns:
+            col_map2["rating"] = "rating"
+        df = df.rename(columns=col_map2)
+
+        keep = [c for c in ["review_text", "rating", "review_date", "bank_code", "bank_name", "source"] if c in df.columns]
         df = df[keep]
 
         dfs.append(df)
@@ -57,9 +81,18 @@ def preprocess(raw_dir: Path, out_file: Path):
     else:
         combined = combined.drop_duplicates(subset=["review"])
 
-    out_file.parent.mkdir(parents=True, exist_ok=True)
-    combined.to_csv(out_file, index=False)
-    print(f"Saved cleaned data ({len(combined)} rows) to {out_file}")
+    # Ensure dates normalized in final file
+    if "review_date" in combined.columns:
+        combined["review_date"] = pd.to_datetime(combined["review_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+
+    # Write to configured processed path if available
+    processed_path = out_file
+    if isinstance(DATA_PATHS, dict) and DATA_PATHS.get("processed_reviews"):
+        processed_path = Path(DATA_PATHS["processed_reviews"])
+
+    processed_path.parent.mkdir(parents=True, exist_ok=True)
+    combined.to_csv(processed_path, index=False)
+    print(f"Saved cleaned data ({len(combined)} rows) to {processed_path}")
 
 
 def main():
