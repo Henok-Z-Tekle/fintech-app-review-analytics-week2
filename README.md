@@ -2,7 +2,7 @@
 
 This module extends the cleaned dataset from Task 1 by applying sentiment analysis, keyword extraction, and thematic clustering on user reviews collected from the Google Play Store for three major Ethiopian mobile banking apps. The objective for Week 2 (Task 2) is to generate an enriched, analysis-ready dataset that includes sentiment labels, confidence scores, cleaned text, keywords, and themes.
 
-Quick summary
+# Quick summary
 
 Goal: Add sentiment labels, sentiment scores, cleaned text, TF-IDF keywords, and themes to the processed review dataset.
 
@@ -16,7 +16,7 @@ data/processed/keywords_per_bank.csv
 
 Branching: Do development on task-2, then create a PR → main.
 
-Repository structure (Task-2 relevant)
+# Repository structure (Task-2 relevant)
 
 src/
 
@@ -42,7 +42,7 @@ keywords_per_bank.csv — TF-IDF outputs per bank
 
 requirements.txt — project dependencies (Transformers, NLTK, Scikit-Learn)
 
-Getting started (local, PowerShell)
+# Getting started (local, PowerShell)
 
 Activate venv & install dependencies:
 
@@ -81,7 +81,7 @@ Open the Task-2 notebook for visualization:
 
 code notebooks/task2_EDA.ipynb
 
-Design & engineering notes
+# Design & engineering notes
 
 DistilBERT-based sentiment model
 Uses distilbert-base-uncased-finetuned-sst-2-english.
@@ -120,7 +120,7 @@ Theme tagging
 
 Write enriched CSV outputs
 
-KPIs (Task-2)
+# KPIs (Task-2)
 
 100% of reviews assigned:
 
@@ -145,7 +145,7 @@ Output files successfully written to:
 data/processed/reviews_with_sentiment.csv
 data/processed/keywords_per_bank.csv
 
-Developer workflow
+# Developer workflow
 
 Checkout a dedicated branch:
 
@@ -161,7 +161,7 @@ git push -u origin task-2
 
 Create a Pull Request → merge into main.
 
-Troubleshooting & tips
+# Troubleshooting & tips
 
 Transformers import failures
 Install missing deps:
