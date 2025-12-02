@@ -1,79 +1,198 @@
-# Fintech App Review Analytics — Week 2 (Task 1 & Task 2 roadmap)
+# Fintech App Review Analytics — Week 2 (Task 2: Sentiment & Thematic Analysis)
 
-This project collects, cleans, and analyzes user reviews from the Google Play Store for Ethiopian banking apps. The primary objective for Week 2 is to deliver a reproducible dataset (400+ usable reviews per bank) and a clean processing pipeline ready for sentiment and thematic analysis.
+This module extends the cleaned dataset from Task 1 by applying sentiment analysis, keyword extraction, and thematic clustering on user reviews collected from the Google Play Store for three major Ethiopian mobile banking apps. The objective for Week 2 (Task 2) is to generate an enriched, analysis-ready dataset that includes sentiment labels, confidence scores, cleaned text, keywords, and themes.
 
-Quick summary
-- Goal: 400+ clean reviews per bank (3 banks → 1,200+). Clean CSV with `review_text`, `rating`, `review_date`, `bank_code`, `bank_name`, `source`.
-- Branching: do development on `task-1`, `task-2` branches; merge to `main` with PRs.
+# Quick summary
 
-Repository structure
-- `scripts/`
-	- `scrape_reviews.py` — CLI scraper (writes per-app CSVs to `data/raw/`).
-	- `preprocess.py` — Combines raw CSVs, removes duplicates/missing fields, normalizes dates, writes `data/processed/reviews_clean.csv`.
-- `src/`
-	- `scraper.py` — higher-level orchestration module.
-	- `preprocessing.py` — `ReviewPreprocessor` class used to clean and validate the dataset.
-	- `preprocessing_EDA.ipynb` — exploratory analysis notebook (loads from DB or CSV fallback).
-- `data/`
-	- `raw/` — raw per-app CSVs
-	- `processed/` — cleaned combined CSVs
-- `requirements.txt` — pinned project dependencies
+Goal: Add sentiment labels, sentiment scores, cleaned text, TF-IDF keywords, and themes to the processed review dataset.
 
-Getting started (local, PowerShell)
-1. Create and activate a virtual environment and install deps:
+Input: data/processed/reviews_processed.csv (from Task 1)
 
-```powershell
+Outputs:
+
+data/processed/reviews_with_sentiment.csv
+
+data/processed/keywords_per_bank.csv
+
+Branching: Do development on task-2, then create a PR → main.
+
+# Repository structure (Task-2 relevant)
+
+src/
+
+task2_sentiment_thematic.py — main Task-2 pipeline (sentiment, TF-IDF, themes)
+
+preprocessing.py — used for Task-1 cleaning; now feeds Task-2
+
+config.py — app IDs, paths, and pipeline configuration
+
+notebooks/
+
+task2_EDA.ipynb — exploratory notebook for sentiment/theme visualization
+
+data/
+
+processed/
+
+reviews_processed.csv — cleaned dataset from Task-1
+
+reviews_with_sentiment.csv — enriched output (Task-2)
+
+keywords_per_bank.csv — TF-IDF outputs per bank
+
+requirements.txt — project dependencies (Transformers, NLTK, Scikit-Learn)
+
+# Getting started (local, PowerShell)
+
+Activate venv & install dependencies:
+
 cd 'C:\Users\heniz\OneDrive\Desktop\KAIM Files\fintech-app-review-analytics-week2'
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-```
 
-2. Scrape reviews (example using configured app IDs in `src/config.py`):
 
-```powershell
-# Scrape 400 reviews per app (adjust --count as needed)
-python scripts/scrape_reviews.py --apps com.combanketh.mobilebanking com.boa.boaMobileBanking com.dashen.dashensuperapp --count 400 --output data/raw/
-```
+⚠️ If you see missing NLTK resources (punkt, stopwords, wordnet), run:
 
-3. Preprocess to create a clean dataset:
+import nltk
+nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')
 
-```powershell
-python scripts/preprocess.py --raw data/raw/ --out data/processed/reviews_clean.csv
-```
 
-4. Run the exploratory notebook for EDA:
+Ensure Task-1 output exists:
 
-```powershell
-code src/preprocessing_EDA.ipynb
-```
+ls data/processed/reviews_processed.csv
 
-Design & engineering notes
-- Config-driven: `src/config.py` centralizes app ids, scraping params, and path config.
-- Optional dependencies: the codebase guards optional packages (e.g., `google-play-scraper`, `python-dotenv`) and surfaces clear errors when a package is required.
-- Data validation: `src/preprocessing.py` implements missing value handling, date normalization, duplicate removal, and a final data-quality report so you can measure KPI compliance (<5% missing critical fields).
 
-KPIs (Task 1)
-- Collect >=400 usable reviews per bank (aim 600 per bank as buffer).
-- Final processed dataset with <5% missing critical fields.
+If missing → run Task 1 first.
 
-Developer workflow
-- Create a branch (`task-2`) for changes; commit frequently with descriptive messages.
-- Push branch to origin and open a PR into `main` for review before merging.
+Run the Task-2 sentiment + thematic pipeline:
 
-Troubleshooting & tips
-- If you see import errors for optional packages, install them:
+python src/task2_sentiment_thematic.py
 
-```powershell
-pip install -r requirements.txt
-```
 
-- If scraper fetches fewer reviews than expected, increase `reviews_per_bank` in `src/config.py` or verify the app availability on Google Play.
+Expected output:
 
-Next steps (Task 2)
-- Add sentiment analysis (VADER or multilingual model) and topical modeling (LDA/NMF) notebooks.
-- Add unit tests for `ReviewPreprocessor` and a minimal CI pipeline to run import/syntax checks on push.
+[SUCCESS] Task 2 completed.
+Reviews with sentiment → data/processed/reviews_with_sentiment.csv
+Keywords per bank      → data/processed/keywords_per_bank.csv
 
-Contact
-- If you want, I can open a PR from `task-1` / `task-2` into `main` and add a GitHub Actions workflow to run basic checks on pushes.
 
+Open the Task-2 notebook for visualization:
+
+code notebooks/task2_EDA.ipynb
+
+# Design & engineering notes
+
+DistilBERT-based sentiment model
+Uses distilbert-base-uncased-finetuned-sst-2-english.
+
+Rule-based theme clustering
+Theme dictionary includes:
+
+Account Access Issues
+
+Transaction Performance
+
+App Stability & Bugs
+
+Network & Connectivity
+
+UI/UX
+
+Customer Support
+
+TF-IDF keyword extraction
+
+Applied per bank
+
+Extracts top 20 n-grams (1–2 gram tokens)
+
+Pipeline structure
+Task is modular:
+
+Clean (clean_text)
+
+Sentiment classifier
+
+TF-IDF keywords
+
+Theme tagging
+
+Write enriched CSV outputs
+
+# KPIs (Task-2)
+
+100% of reviews assigned:
+
+sentiment_label
+
+sentiment_score
+
+clean_text
+
+themes
+
+TF-IDF produces ranking of keywords for:
+
+CBE Mobile Banking
+
+BOA Mobile Banking
+
+Dashen Bank SuperApp
+
+Output files successfully written to:
+
+data/processed/reviews_with_sentiment.csv
+data/processed/keywords_per_bank.csv
+
+# Developer workflow
+
+Checkout a dedicated branch:
+
+git checkout -b task-2
+
+
+Stage, commit, push:
+
+git add .
+git commit -m "Add Task 2: Sentiment and Thematic Analysis pipeline"
+git push -u origin task-2
+
+
+Create a Pull Request → merge into main.
+
+# Troubleshooting & tips
+
+Transformers import failures
+Install missing deps:
+
+pip install transformers torch
+
+
+NLTK errors
+Run:
+
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+
+DistilBERT too slow?
+Switch to a lighter sentiment model or truncate review text at 512 chars.
+
+Next steps (Task 3)
+
+Create PostgreSQL schema (reviews + apps tables).
+
+Insert enriched Task-2 dataset into PostgreSQL.
+
+Write SQL queries for:
+
+sentiment distribution per bank
+
+top negative keywords
+
+theme frequency statistics
+
+Use SQL-based EDA to support Task-4 insights.
