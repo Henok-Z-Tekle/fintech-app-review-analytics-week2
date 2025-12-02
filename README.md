@@ -1,79 +1,189 @@
-# Fintech App Review Analytics — Week 2 (Task 1 & Task 2 roadmap)
+# Fintech App Review Analytics — Week 2 (Task 3: PostgreSQL Integration)
 
-This project collects, cleans, and analyzes user reviews from the Google Play Store for Ethiopian banking apps. The primary objective for Week 2 is to deliver a reproducible dataset (400+ usable reviews per bank) and a clean processing pipeline ready for sentiment and thematic analysis.
+This module stores the cleaned and enriched review dataset (Task-1 + Task-2 outputs) into a PostgreSQL database.
+The goal is to prepare a query-ready relational schema for downstream analytics (Task-4 dashboards & insights).
 
-Quick summary
-- Goal: 400+ clean reviews per bank (3 banks → 1,200+). Clean CSV with `review_text`, `rating`, `review_date`, `bank_code`, `bank_name`, `source`.
-- Branching: do development on `task-1`, `task-2` branches; merge to `main` with PRs.
+## Quick summary
 
-Repository structure
-- `scripts/`
-	- `scrape_reviews.py` — CLI scraper (writes per-app CSVs to `data/raw/`).
-	- `preprocess.py` — Combines raw CSVs, removes duplicates/missing fields, normalizes dates, writes `data/processed/reviews_clean.csv`.
-- `src/`
-	- `scraper.py` — higher-level orchestration module.
-	- `preprocessing.py` — `ReviewPreprocessor` class used to clean and validate the dataset.
-	- `preprocessing_EDA.ipynb` — exploratory analysis notebook (loads from DB or CSV fallback).
-- `data/`
-	- `raw/` — raw per-app CSVs
-	- `processed/` — cleaned combined CSVs
-- `requirements.txt` — pinned project dependencies
+Goal: Create a PostgreSQL database bank_reviews, store all banks & their reviews, and enable SQL-based analytics.
 
-Getting started (local, PowerShell)
-1. Create and activate a virtual environment and install deps:
+Inputs:
 
-```powershell
-cd 'C:\Users\heniz\OneDrive\Desktop\KAIM Files\fintech-app-review-analytics-week2'
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
+data/processed/reviews_processed.csv
 
-2. Scrape reviews (example using configured app IDs in `src/config.py`):
+data/processed/reviews_with_sentiment.csv (if Task 2 was completed)
 
-```powershell
-# Scrape 400 reviews per app (adjust --count as needed)
-python scripts/scrape_reviews.py --apps com.combanketh.mobilebanking com.boa.boaMobileBanking com.dashen.dashensuperapp --count 400 --output data/raw/
-```
+Outputs:
 
-3. Preprocess to create a clean dataset:
+PostgreSQL tables: banks, reviews
 
-```powershell
-python scripts/preprocess.py --raw data/raw/ --out data/processed/reviews_clean.csv
-```
+Records inserted: ~1200+ reviews (400 per bank)
 
-4. Run the exploratory notebook for EDA:
+Branching: Do your work on task-3, then open a Pull Request → main.
 
-```powershell
-code src/preprocessing_EDA.ipynb
-```
+# Repository structure (Task-3 relevant)
+src/
+ ├── db_connection.py              # Reusable PostgreSQL connector
+ ├── task3_postgres_setup.py       # Creates DB, tables, inserts data
+ ├── task2_sentiment_thematic.py   # (Task 2 pipeline)
+ ├── preprocessing.py              # (Task 1)
+ └── config.py                     # DB + path configuration
 
-Design & engineering notes
-- Config-driven: `src/config.py` centralizes app ids, scraping params, and path config.
-- Optional dependencies: the codebase guards optional packages (e.g., `google-play-scraper`, `python-dotenv`) and surfaces clear errors when a package is required.
-- Data validation: `src/preprocessing.py` implements missing value handling, date normalization, duplicate removal, and a final data-quality report so you can measure KPI compliance (<5% missing critical fields).
+data/
+ ├── processed/
+ │    ├── reviews_processed.csv
+ │    └── reviews_with_sentiment.csv
+ └── raw/
 
-KPIs (Task 1)
-- Collect >=400 usable reviews per bank (aim 600 per bank as buffer).
-- Final processed dataset with <5% missing critical fields.
+## PostgreSQL schema
 
-Developer workflow
-- Create a branch (`task-2`) for changes; commit frequently with descriptive messages.
-- Push branch to origin and open a PR into `main` for review before merging.
+Two tables are created:
 
-Troubleshooting & tips
-- If you see import errors for optional packages, install them:
+1️⃣ banks
+Column	Type	Notes
+bank_id	SERIAL (PK)	Auto-generated
+bank_code	VARCHAR	CBE, BOA, DASHEN
+bank_name	TEXT	Full bank name
+app_name	TEXT	App name on Play Store
+2️⃣ reviews
+Column	Type	Notes
+review_id	TEXT (PK)	Unique Google Play ID
+bank_id	INT (FK)	Linked to banks.bank_id
+review_text	TEXT	Raw review text
+rating	INT	1–5 stars
+review_date	DATE	Normalized
+sentiment_label	VARCHAR	POSITIVE / NEGATIVE
+sentiment_score	REAL	Confidence (0–1)
+source	TEXT	google_play
+# Getting started (local, PowerShell)
 
-```powershell
-pip install -r requirements.txt
-```
+Ensure PostgreSQL is running
 
-- If scraper fetches fewer reviews than expected, increase `reviews_per_bank` in `src/config.py` or verify the app availability on Google Play.
+Open:
 
-Next steps (Task 2)
-- Add sentiment analysis (VADER or multilingual model) and topical modeling (LDA/NMF) notebooks.
-- Add unit tests for `ReviewPreprocessor` and a minimal CI pipeline to run import/syntax checks on push.
+SQL Shell (psql)
 
-Contact
-- If you want, I can open a PR from `task-1` / `task-2` into `main` and add a GitHub Actions workflow to run basic checks on pushes.
 
+Login:
+
+psql -U postgres
+
+
+Enter password:
+
+Henzi19$
+
+
+Create the database manually (optional)
+
+CREATE DATABASE bank_reviews;
+
+
+If you do not create it manually, the Task-3 script will create it for you.
+
+Run Task-3 pipeline
+
+From project root:
+
+python src/task3_postgres_setup.py
+
+
+Expected output:
+
+=== Task 3 – PostgreSQL Setup ===
+[INFO] Database 'bank_reviews' already exists.
+[INFO] Tables 'banks' and 'reviews' are ready.
+[INFO] Inserted/updated banks metadata.
+[INFO] Loading reviews from data/processed/reviews_with_sentiment.csv
+[INFO] Inserting 1200 reviews...
+
+[STATS] Review counts per bank:
+('Bank of Abyssinia', 400, 3.2)
+('Commercial Bank of Ethiopia', 400, 2.1)
+('Dashen Bank', 400, 3.5)
+
+[OK] Task 3 completed.
+
+# Design & engineering notes
+
+Idempotent design
+
+Running Task-3 multiple times will not duplicate data.
+
+Uses ON CONFLICT DO NOTHING for reviews.
+
+Uses ON CONFLICT DO UPDATE for banks.
+
+Automatic fallback
+
+If reviews_with_sentiment.csv exists → uses it
+
+Else → loads reviews_processed.csv & fills missing sentiment fields
+
+Separation of concerns
+
+db_connection.py handles DB connections
+
+task3_postgres_setup.py handles creation & inserts
+
+Queries and verification logic isolated cleanly
+
+## KPIs (Task-3)
+
+Database successfully created
+
+banks table contains exactly 3 entries
+
+reviews table contains ~1200+ entries
+
+No review duplication
+
+Sentiment columns preserved where available
+
+Verification queries print accurate stats
+
+## Developer workflow
+git checkout -b task-3
+git add .
+git commit -m "Add Task 3: PostgreSQL integration (DB, tables, inserts)"
+git push -u origin task-3
+
+
+Open Pull Request → Merge into main.
+
+## Troubleshooting & tips
+psql: FATAL: password authentication failed
+
+→ Ensure password is exactly:
+Henzi19$
+
+Script errors: cannot connect to localhost:5432
+
+→ PostgreSQL service not running
+Start it:
+
+services.msc → postgresql-x64 → Start
+
+pgAdmin not opening
+
+→ Install from: https://www.pgadmin.org/download/
+
+Next steps (Task 4)
+
+Use SQL queries for:
+
+Sentiment distribution per bank
+
+Themes per bank
+
+Rating averages
+
+Negative vs positive review counts
+
+Build visual dashboards:
+
+matplotlib / seaborn notebooks
+
+SQL-based aggregation views
+
+Draft insights for final Week-2 report.
